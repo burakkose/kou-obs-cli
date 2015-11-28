@@ -92,7 +92,6 @@ class KOUCMD(cmd.Cmd):
                     out_table.add_row(a)
                 print(out_table)
             except Exception as ex:
-                print(ex)
                 print(colored(">>>> Notlar işlenirken hata oluştu", 'red'))
         else:
             self.do_login(ln)
