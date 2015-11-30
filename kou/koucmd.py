@@ -1,13 +1,13 @@
 import cmd
 import getpass
 import requests
+import sys
 
 from termcolor import colored
 from bs4 import BeautifulSoup as bs4
 from prettytable import PrettyTable
 
-__author__ = 'burakks'
-__version__ = '0.1.1'
+__version__ = '0.1.7'
 
 requests.packages.urllib3.disable_warnings()
 
@@ -38,12 +38,13 @@ class KOUCMD(cmd.Cmd):
         self.response = {}
         self.session = requests.session()
 
-    def do_login(self, ln):
+    def do_giris(self, ln):
         if not self.is_login:
             username = input('{} Okul No : '.format(colored('>>>', 'red')))
             password = getpass.getpass(
                 '{}Parola : '.format(colored(">>> ", "red")))
             try:
+                print(colored(">>>> Giriş yapılıyor...", 'yellow'))
                 self.request['Sicil'] = username
                 self.request['Sifre'] = password
                 self.request['LoggingOn'] = '1'
@@ -64,9 +65,10 @@ class KOUCMD(cmd.Cmd):
                 self.is_login = False
                 self.do_login(ln)
 
-    def do_grades(self, ln):
+    def do_notlar(self, ln):
         if self.is_login:
             try:
+                print(colored(">>>> Notlar işleniyor...", 'yellow'))
                 self.response['grades'] = self.session.get(GRADE_URL)
                 current_term = bs4(self.response['grades'].text, 'lxml') \
                     .find('option', selected=True)['value']
@@ -92,15 +94,15 @@ class KOUCMD(cmd.Cmd):
                     out_table.add_row(a)
                 print(out_table)
             except Exception as ex:
-                print(ex)
                 print(colored(">>>> Notlar işlenirken hata oluştu", 'red'))
         else:
             self.do_login(ln)
             self.do_grades(ln)
 
-    def do_status(self, ln):
+    def do_genel(self, ln):
         if self.is_login:
             try:
+                print(colored(">>>> Genel durum işleniyor...", 'yellow'))
                 self.response['bgrades'] = self.session.get(BGRADE_URL)
                 info = bs4(self.response['bgrades'].text, 'lxml') \
                     .find_all('tr', 'menu_td')
@@ -126,14 +128,27 @@ class KOUCMD(cmd.Cmd):
              | |_) | |__| | | \ \  / ____ \| . \  | . \| |_| |___) | |____
              |____/ \____/|_|  \_\/_/    \_\_|\_\ |_|\_\\___/_____/|______|
                                   www.koseburak.net
-                                                               """, 'blue'))
+                                                               """, 'green'))
 
-    def do_exit(self, ln):
+    def do_help(self, ln):
+        print(colored("""
+        Giriş yapmak için -> giris
+        Notları görüntülemek için -> notlar
+        Genel durum için -> genel
+        Çıkış için -> cikis
+        """, 'yellow'))
+
+    def do_cikis(self, ln):
         return -1
 
     def do_EOF(self, ln):
         return self.do_exit(ln)
 
 
-if __name__ == '__main__':
+def main():
+    if sys.version_info < (3, 0):
+        raise "Python 3 bagımlılığı vardır."
     KOUCMD().cmdloop()
+
+if __name__ == '__main__':
+    main()
